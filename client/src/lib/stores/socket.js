@@ -17,6 +17,5 @@ socket.subscribe(async socket => {
     });
 
     Store.register(socket);
-    ChatStore.register(socket);
 
 });

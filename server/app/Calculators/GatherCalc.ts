@@ -3,6 +3,7 @@ import Level from 'App/Models/Level';
 import User from 'App/Models/User';
 import { UserStore } from 'App/Services/UserStore';
 import Ws from 'App/Services/Ws';
+import XPCalc from './XpCalc';
 
 
 class GatherCalc {
@@ -110,6 +111,18 @@ class GatherCalc {
         let response = {};
         response[this.typenaming[2]()] = resources;
         //console.log(response);
+
+        // xp calculations
+        //@ts-ignore
+        let xpres: Object = XPCalc.action(this.id, 'gather', this.type, this.store);
+
+        response[this.typenaming[1]] = xpres[this.typenaming[1]];
+        // console.log('-----')
+        // console.log(this.typenaming[1]);
+        // console.log(xpres);
+        if (xpres.hasOwnProperty('level')) {
+            response[this.typenaming[0]] = 1;
+        }
 
         return response;
         // return in JSON format

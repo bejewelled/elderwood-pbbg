@@ -6,41 +6,41 @@ export default class Level extends BaseModel {
   public id: number
 
   @column()
-  public level_mastery: bigint
+  public level_mastery: number
   @column()
-  public level_combat: bigint
+  public level_combat: number
   @column()
-  public level_mining: bigint
+  public level_mining: number
   @column()
-  public level_woodcutting: bigint
+  public level_woodcutting: number
   @column()
-  public level_hunting: bigint
+  public level_hunting: number
   @column()
-  public level_quarrying: bigint
+  public level_quarrying: number
   @column()
-  public level_forging: bigint
+  public level_forging: number
   @column()
-  public level_jewelcrafting: bigint
+  public level_jewelcrafting: number
   @column()
-  public level_fame: bigint
+  public level_fame: number
   @column()
-  public xp_mastery: bigint
+  public xp_mastery: number
   @column()
-  public xp_combat: bigint
+  public xp_combat: number
   @column()
-  public xp_mining: bigint
+  public xp_mining: number
   @column()
-  public xp_woodcutting: bigint
+  public xp_woodcutting: number
   @column()
-  public xp_hunting: bigint
+  public xp_hunting: number
   @column()
-  public xp_quarrying: bigint
+  public xp_quarrying: number
   @column()
-  public xp_forging: bigint
+  public xp_forging: number
   @column()
-  public xp_jewelcrafting: bigint
+  public xp_jewelcrafting: number
   @column()
-  public xp_fame: bigint
+  public xp_fame: number
 
 
   @column.dateTime({ autoCreate: true })

@@ -3,6 +3,7 @@
     import {Container, Row, Col, NavLink, Nav, Navbar} from 'sveltestrap'
     import {actionclass, isActive} from '$lib/stores/user'
     import {socket} from '$lib/stores/socket'
+    import {actionsummary, tickRec} from '$lib/stores/game'
 import Combat from '../game/combat.svelte';
 import * as ele from 'jquery';
 import {id, nextClockTick, currres, currtype} from '$lib/stores/user'
@@ -27,6 +28,7 @@ import {id, nextClockTick, currres, currtype} from '$lib/stores/user'
         socket.set(connectedSocket);
         $socket.emit('Test');
         $socket.on('gather-result', (data) => {
+            console.log(data);
             isActive.set('true');
             changeFlavorText(type);
             updateDisplay(data);
@@ -99,6 +101,7 @@ import {id, nextClockTick, currres, currtype} from '$lib/stores/user'
                 type = 'quarrying';
                 break;
         }
+;
         currtype.set(type);
         currres.set(resourceLabel);
 
@@ -113,16 +116,17 @@ import {id, nextClockTick, currres, currtype} from '$lib/stores/user'
                 id: 1
             })
          })
-
     }
-
-
     let resgain = 0;
     let xpgain = 0;
     async function updateDisplay(data) {
-        console.log(resourceLabel);
         resgain = data[resourceLabel];
-        console.log(resgain);
+        actionsummary.set({
+            gain: data,
+            type: type,
+            label: resourceLabel
+        });
+        tickRec.set('true');
     }
 
     </script>

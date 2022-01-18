@@ -1,6 +1,8 @@
 import Database from "@ioc:Adonis/Lucid/Database";
 import Level from "App/Models/Level";
 import Wallet from "App/Models/Wallet";
+import { parse } from "dotenv";
+import Ws from "./Ws";
 
  /**
   * This store should only contain values that are expected to change every action
@@ -13,6 +15,7 @@ export class UserStore {
     // holds a tempstore of everything that would be action-updated.
     public wallet;
     public levels: Object;
+    public xpthresholds: Object;
     private id;
 
     /**
@@ -26,8 +29,12 @@ export class UserStore {
     }
 
     public async assign(id) {
+        console.log(id);
         this.wallet = await Database.query().from('wallets').select('*').where('id', id)[0];
         this.levels = await Database.query().from('levels').select('*').where('id', id)[0];
+        this.xpthresholds = await Database.query().from('xp_thresholds').select('*').where('id', id)[0];
+        console.log("this is: ")
+        console.log(this.levels)
     }
     public async getID() {
         return this.id;
@@ -39,15 +46,21 @@ export class UserStore {
      * @param response A JSON object of the items to update in userstore
      */
     public async update(response) {
+        console.log(this.xpthresholds);
         let walletdbupdate = {};
         let levelsdbupdate = {};
         for (const key of Object.keys(response)) {
            if (this.wallet.hasOwnProperty(key)) {
-                this.wallet[key] = BigInt(this.wallet[key]) + BigInt(response[key]);
-                walletdbupdate[key] = BigInt(this.wallet[key]);
+                this.wallet[key] = parseInt(this.wallet[key]) + parseInt(response[key]);
+                walletdbupdate[key] = parseInt(this.wallet[key]);
             } else if (this.levels.hasOwnProperty(key)) {
-                this.levels[key] += BigInt(this.levels[key]) + BigInt(response[key]);
-                levelsdbupdate[key] = BigInt(this.levels[key]);
+                // console.log('----');
+                // console.log(response[key]);
+                console.log('key is ' + key)
+                console.log(this.levels[key] + "level xp");
+                console.log(response[key]);
+                this.levels[key] = parseInt(this.levels[key]) + parseInt(response[key]);
+                levelsdbupdate[key] = this.levels[key];
             }
         }
         this.push(walletdbupdate, levelsdbupdate);
@@ -55,14 +68,23 @@ export class UserStore {
     }
 
     // pushes all values onto database
-    public async push(wallet, levels) {
-        console.log(wallet);
+    public async push(twallet, tlevels) {
+        // console.log('-----')
+        // console.log(tlevels);
         //TODO fix this
         const dbwallet = await Wallet.findOrFail(this.id);
         const dblevels = await Level.findOrFail(this.id);
-        console.log(dbwallet);
-        await dbwallet.merge(wallet);
-        await dblevels.merge(levels);
+        dbwallet.merge(twallet).save();
+        dblevels.merge(tlevels).save();
+
+        // sends info to client
+        const userdata = {
+            wallet: this.wallet,
+            levels: this.levels,
+            xpthresholds: this.xpthresholds
+        }
+
+        Ws.io.emit('pushuserdata', userdata);
     }
 
 }

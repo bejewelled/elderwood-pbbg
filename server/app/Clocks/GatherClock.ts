@@ -32,12 +32,14 @@ class GatherClock {
      * The type depends on the action - 'jewelcraft', 'forge', 'gather', or 'combat'
      */
     public async start() {
+        
         this.stop(); // makes sure multiple clocks can't run at the same time
         this.clockRunning = true;
         // console.log("THE CLOCK")
         Ws.io.emit('prepareClockStart'); // allows client to display preparation text
 
         this.clock = schedule.scheduleJob('*/6 * * * * *',() => {
+            let tickstart = Date.now();
             this.nextClockTick = this.clock.nextInvocation().getTime(); // grabs next tick (for client-side display)
             console.log(this.nextClockTick);
             Ws.io.emit('clock-tick', {
@@ -57,6 +59,8 @@ class GatherClock {
              Ws.io.emit('tick', {
                 id: this.id,
             }) // emits next tick time
+
+            console.log("Latency: " + (Date.now() - tickstart) + " ms")
         })
     }
 

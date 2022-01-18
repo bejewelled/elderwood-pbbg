@@ -7,4 +7,4 @@ export const actionclass = writable('');
 export const isActive = writable('');
 export const nextClockTick = writable();
 export const currres = writable();
-export const currtype = writable();
+export const currtype = writable('mining');

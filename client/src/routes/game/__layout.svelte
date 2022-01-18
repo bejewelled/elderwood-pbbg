@@ -1,16 +1,21 @@
 <script src="https://cdn.socket.io/4.4.0/socket.io.min.js">
-    import {Progress} from 'sveltestrap'
+    import {Progress, Tooltip} from 'sveltestrap'
     import { get } from 'svelte/store'
-    import  Store from '$lib/stores/game'
-import { onMount } from 'svelte';
+    import {actionsummary, userdata, tickRec} from '$lib/stores/game'
+    import { onMount } from 'svelte';
     import {socket} from "$lib/stores/socket"
-    import {id, nextClockTick, isActive} from "$lib/stores/user"
+    import {id, nextClockTick, isActive, currtype} from "$lib/stores/user"
     import { Router, Route, Link } from "svelte-navigator";
     import {navigate} from "svelte-routing";
     import Gathering from '../actions/gathering.svelte'
-    import * as ele from 'jquery'
+    import * as ele from 'jquery';
 
     let uid = $id;
+
+    $: formattedType = $currtype.charAt(0).toUpperCase() + $currtype.slice(1)
+    $: currentpxp = $userdata.levels['xp_' + $currtype]
+    $: maxpxp = $userdata.xpthresholds[$currtype];
+
 
     // $: actionProgress =  () => {
     //     document.getElementById('action-timer').style.width = ($nextClockTick - date) / 60
@@ -18,7 +23,8 @@ import { onMount } from 'svelte';
     //     console.log("br");
     // };
 
-    $: actionProgress = Math.round(($nextClockTick - date)/10) / 100
+    $: actionProgress = Math.round(($nextClockTick - date)/100) / 10
+    $: expProgress = (currentpxp / maxpxp) * 100
     // $: brr = console.log(($nextClockTick - date) / 60 + " math");
     // $: skrr = console.log(date + " date");
  //   $: brr = console.log(($nextClockTick - date) / 60);
@@ -33,12 +39,14 @@ import { onMount } from 'svelte';
     onMount(async () => {
         const interval = setInterval(() => {
 			date = new Date().getTime();
-           // editWidth();
-		}, 25);
+           
+		}, 200);
         let connectedSocket = await io.connect('http://localhost:3333', {path: "/socket.io/", transports: ["websocket"], /*query: {token: $session.token}*/});
         socket.set(connectedSocket);
         $socket.emit('Test');
         $socket.on('tick', (data) => {
+            console.log(currentpxp + " " + maxpxp + " ");
+            editWidth('#progress-xp-bar', (100*(currentpxp / maxpxp)) + "%");
             //console.log(data.id);
             id.set(data.id);
             // username.set(data.username);
@@ -63,8 +71,8 @@ import { onMount } from 'svelte';
         isActive.set('false');
     }
     
-    async function editWidth() {
-        let res = ele('#action-timer').css("width", actionProgress);
+    async function editWidth(element, variable) {
+        let res = ele('#progress-xp-bar').css("width", variable);
     }
     async function startAction() {
         console.log("yo");
@@ -104,7 +112,7 @@ import { onMount } from 'svelte';
         <div class='col-2 px-4'>
             <div class='row'style='padding-bottom: 2px'>
                 <div class='col-5'>Gold</div>                
-                <div class='col-7'>19,992,910,224</div>
+                <div class='col-7'>{$userdata.wallet.gold}</div>
             </div> 
             <div class='row'style='padding-bottom: 2px'>    
                 <div class='col-5'>ID</div>
@@ -112,31 +120,62 @@ import { onMount } from 'svelte';
             </div> 
             <div class='row'style='padding-bottom: 2px'>
                 <div class='col-5'>Runes</div>
-                <div class='col-7'>99</div>  
+                <div class='col-7'>{$userdata.wallet.runes}</div>  
             </div>  
             <div class='row'style='padding-bottom: 2px'>
                 <div class='col-5 essencename'>Essence</div>
-                <div class='col-7'>6</div>
+                <div class='col-7'>{$userdata.wallet.essence}</div>
             </div> 
             <!-- <div class='row'>
                 <div class='col-5 iridiumname' style=''><strong>Iridium</strong></div>
                 <div class='col-7'>{shardDisp}</div>  
             </div>   -->
         </div>
+
+        <div class='col-2 px-4'>
+            <div class='row'style='padding-bottom: 2px'>
+                <div class='col-5'>Copper</div>                
+                <div class='col-7'>{$userdata.wallet.copper.toLocaleString()}</div>
+            </div> 
+            <div class='row'style='padding-bottom: 2px'>    
+                <div class='col-5'>Wood</div>
+                <div class='col-7'>{$userdata.wallet.wood.toLocaleString()}</div>
+            </div> 
+            <div class='row'style='padding-bottom: 2px'>
+                <div class='col-5'>Food</div>
+                <div class='col-7'>{$userdata.wallet.food.toLocaleString()}</div>  
+            </div>  
+            <div class='row'style='padding-bottom: 2px'>
+                <div class='col-5 essencename'>Stone</div>
+                <div class='col-7'>{$userdata.wallet.stone.toLocaleString()}</div>
+            </div> 
+            <!-- <div class='row'>
+                <div class='col-5 iridiumname' style=''><strong>Iridium</strong></div>
+                <div class='col-7'>{shardDisp}</div>  
+            </div>   -->
+        </div>
+
         <div class='col-5'>
             <div class='row' style='padding-bottom: 2px'>    
-                <div class='col-3 px-0'><strong>Jewelcrafting Level 265</strong></div>
-                <div class='col-8'><Progress value={12} max={17} color='info'
-                    style="height: 18px" id='progress-mastery' striped
-                    class='progressbar--mastery'>
-                    </Progress></div>
+                <div class='col-3 px-0'><strong>{formattedType} Level {$userdata.levels['level_' + $currtype]}</strong></div>
+                <div class='col-4'>
+                    ( {currentpxp} / {maxpxp})
+
+                    <!-- <div class='progress progress-striped active'>
+                        <div id='profession-xp-bar' class='progress-bar-striped' style="width: 34%; background-color: rgb(32,210,225)"></div>
+                    </div> -->
+                   <!--  <Progress value={currentpxp} max={maxpxp} color='info'
+                    style="height: 18px" id='progress-profession' striped
+                    class='progressbar--profession'> 
+                    {currentpxp} / {maxpxp}
+                    </Progress> -->
+                    <!-- <Tooltip target='progress-profession' bottom>{currentpxp} / {maxpxp}</Tooltip>-->
+                </div> 
             </div> 
             <div class='row' style='padding-bottom: 2px'>
                 <div class='col-3 px-0'><strong>Mastery Level 4,227</strong></div>                
                 <div class='col-8'> 
-                    <div class='progress progress-striped active'>
-                        <div class='progress-bar' style="width: 34%; background-color: red">Mastery Level 33</div>
-                    </div>
+                    
                     <!-- <Progress value={8} max={23} color='success'
                     style="height: 18px" id='progress-mastery'striped
                     class='progressbar--mastery'>
@@ -262,7 +301,15 @@ import { onMount } from 'svelte';
 
 
         <div class='col-2 mx-1 my-1 wrapper'>
-            test plerase??
+            <div class='row justify-content-center'>
+                Action Summary
+            </div>
+            <hr />
+            <div class='row justify-content-center'>
+                {#if $tickRec === 'true'}
+                 + {$actionsummary.gain[$actionsummary.label]} {$actionsummary.label}
+                {/if}
+            </div>
         </div>
     </div>
 
@@ -302,6 +349,12 @@ import { onMount } from 'svelte';
         font-family: 'Optima', sans-serif
     }
 
+
+    hr {
+        margin-bottom: 4px;
+        margin-top: 3px;
+        border-top: 4px;
+    }
     .linkrefs {
         text-decoration: none;
         color: inherit;
@@ -378,4 +431,5 @@ import { onMount } from 'svelte';
         font-weight: bold;
         color: rgb(240, 30, 132);
     }
+
 </style>

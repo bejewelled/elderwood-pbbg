@@ -6,43 +6,43 @@ export default class StatDevotion extends BaseModel {
   public id: number
 
   @column()
-  public combat_attack: bigint
+  public combat_attack: number
   @column()
-  public combat_defense: bigint
+  public combat_defense: number
   @column()
-  public combat_dexterity: bigint
+  public combat_dexterity: number
   @column()
-  public combat_agility: bigint
+  public combat_agility: number
   @column()
-  public combat_health: bigint
+  public combat_health: number
   @column()
-  public devotion_attack: bigint
+  public devotion_attack: number
   @column()
-  public devotion_defense: bigint
+  public devotion_defense: number
   @column()
-  public devotion_dexterity: bigint
+  public devotion_dexterity: number
   @column()
-  public devotion_agility: bigint
+  public devotion_agility: number
   @column()
-  public devotion_health: bigint
+  public devotion_health: number
   @column()
-  public devotion_penetration: bigint
+  public devotion_penetration: number
   @column()
-  public devotion_goldmonster: bigint
+  public devotion_goldmonster: number
   @column()
-  public devotion_resource: bigint
+  public devotion_resource: number
   @column()
-  public devotion_cobaltchance: bigint
+  public devotion_cobaltchance: number
   @column()
-  public devotion_forgepower: bigint
+  public devotion_forgepower: number
   @column()
-  public devotion_jcmultiaction: bigint
+  public devotion_jcmultiaction: number
   @column()
-  public devotion_diffmultiaction: bigint
+  public devotion_diffmultiaction: number
   @column()
-  public devotion_resettimer: bigint
+  public devotion_resettimer: number
   @column()
-  public devotion_guildresource: bigint
+  public devotion_guildresource: number
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

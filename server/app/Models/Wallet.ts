@@ -6,31 +6,31 @@ export default class Wallet extends BaseModel {
   public id: number
 
   @column()
-  public gold: bigint
+  public gold: number
   @column()
-  public runes: bigint
+  public runes: number
   @column()
-  public essence: bigint
+  public essence: number
   @column()
-  public copper: bigint
+  public copper: number
   @column()
-  public wood: bigint
+  public wood: number
   @column()
-  public food: bigint
+  public food: number
   @column()
-  public stone: bigint
+  public stone: number
   @column()
-  public cobalt_fragment: bigint
+  public cobalt_fragment: number
   @column()
-  public tome_knowledge: bigint
+  public tome_knowledge: number
   @column()
-  public prism_shard: bigint
+  public prism_shard: number
   @column()
-  public dark_matter: bigint
+  public dark_matter: number
   @column()
-  public gems: bigint
+  public gems: number
   @column()
-  public stamina: bigint
+  public stamina: number
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

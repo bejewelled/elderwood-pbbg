@@ -8,6 +8,7 @@ import StatDevotion from 'App/Models/StatDevotion'
 import Ws from 'App/Services/Ws'
 import Database from '@ioc:Adonis/Lucid/Database'
 import  {UserStore}  from 'App/Services/UserStore'
+import XpThreshold from 'App/Models/XpThreshold'
 
 export default class AuthController {
     public async registerShow({}: HttpContextContract) {
@@ -25,9 +26,10 @@ export default class AuthController {
                 const data = await request.validate({schema: userSchema});
 
                 const user = await User.create(data);
-                const level = await Level.create({level_combat: BigInt(1)})
-                const wallet = await Wallet.create({gold: BigInt(0)})
-                const stats = await StatDevotion.create({combat_attack: BigInt(0)})
+                const level = await Level.create({level_combat: 0})
+                const wallet = await Wallet.create({gold: 0})
+                const stats = await StatDevotion.create({combat_attack: 0})
+                const xpthresholds = await XpThreshold.create({mining: 0})
         
                 // logs in user after registration
                 await auth.login(user);
