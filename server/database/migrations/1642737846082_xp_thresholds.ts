@@ -1,6 +1,6 @@
 import BaseSchema from '@ioc:Adonis/Lucid/Schema'
 
-export default class Xpthresholds extends BaseSchema {
+export default class XpThresholds extends BaseSchema {
   protected tableName = 'xp_thresholds'
 
   public async up () {

@@ -1,5 +1,6 @@
 import Database from "@ioc:Adonis/Lucid/Database";
 import Level from "App/Models/Level";
+import State from "App/Models/State";
 import Wallet from "App/Models/Wallet";
 import { parse } from "dotenv";
 import Ws from "./Ws";
@@ -10,13 +11,13 @@ import Ws from "./Ws";
   */
 export class UserStore {
      // used only to push values into the db
-    private dbwallet;
-    private dblevels;
+    public clock;
     // holds a tempstore of everything that would be action-updated.
     public wallet;
     public levels: Object;
     public xpthresholds: Object;
     private id;
+    public states;
 
     /**
      * Initializes the values of the user
@@ -33,11 +34,20 @@ export class UserStore {
         this.wallet = await Database.query().from('wallets').select('*').where('id', id)[0];
         this.levels = await Database.query().from('levels').select('*').where('id', id)[0];
         this.xpthresholds = await Database.query().from('xp_thresholds').select('*').where('id', id)[0];
-        console.log("this is: ")
-        console.log(this.levels)
     }
     public async getID() {
         return this.id;
+    }
+
+    public getClockStatus() {
+        return this.states['isActive'];
+    }
+
+    public async setClockStatus(bool: boolean) {
+        this.states['isActive'] = bool;
+        console.log(this.id);
+        const active = await State.findOrFail(this.id);
+        active.merge({is_active: bool}).save();
     }
 
 
@@ -46,7 +56,6 @@ export class UserStore {
      * @param response A JSON object of the items to update in userstore
      */
     public async update(response) {
-        console.log(this.xpthresholds);
         let walletdbupdate = {};
         let levelsdbupdate = {};
         for (const key of Object.keys(response)) {
@@ -54,12 +63,7 @@ export class UserStore {
                 this.wallet[key] = parseInt(this.wallet[key]) + parseInt(response[key]);
                 walletdbupdate[key] = parseInt(this.wallet[key]);
             } else if (this.levels.hasOwnProperty(key)) {
-                // console.log('----');
-                // console.log(response[key]);
-                console.log('key is ' + key)
-                console.log(this.levels[key] + "level xp");
-                console.log(response[key]);
-                this.levels[key] = parseInt(this.levels[key]) + parseInt(response[key]);
+                // this.levels[key] = parseInt(this.levels[key]) + parseInt(response[key]);
                 levelsdbupdate[key] = this.levels[key];
             }
         }

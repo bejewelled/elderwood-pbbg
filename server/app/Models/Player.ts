@@ -1,40 +1,32 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
 
-export default class XpThreshold extends BaseModel {
+export default class Player extends BaseModel {
   @column({ isPrimary: true })
   public id: number
+
+  @column()
+  public active: boolean
+
+  @column()
+  public last_seen: DateTime
+
+  @column()
+  public guild: string
+
+  @column()
+  public action_class: string
   
   @column()
-  public combat: number
-
-  @column()
-  public mining: number
-
-  @column()
-  public woodcutting: number
-
-  @column()
-  public hunting: number
-  
-  @column()
-  public quarrying: number
-
-  @column()
-  public forging: number
-
-  @column()
-  public jewelcrafting: number
-
-  @column()
-  public fame: number
-  
-  @column()
-  public mastery: number
+  public gather_type: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
+
+  public saveData() {
+    
+  }
 }

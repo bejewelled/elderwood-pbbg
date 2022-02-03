@@ -1,5 +1,5 @@
-<script>
-    import { onMount } from 'svelte';
+<script src="https://cdn.socket.io/socket.io-1.4.3.js">
+    import { onDestroy, onMount } from 'svelte';
     import {Container, Row, Col, NavLink, Nav, Navbar} from 'sveltestrap'
     import {actionclass, isActive} from '$lib/stores/user'
     import {socket} from '$lib/stores/socket'
@@ -7,6 +7,7 @@
 import Combat from '../game/combat.svelte';
 import * as ele from 'jquery';
 import {id, nextClockTick, currres, currtype} from '$lib/stores/user'
+import {userdata} from '$lib/stores/game'
 
     let type;
     let resourceLabel;
@@ -14,6 +15,7 @@ import {id, nextClockTick, currres, currtype} from '$lib/stores/user'
     let active = $isActive;
     let flavor = ' to gather some A#*U8D(@U@!OCIX^.';
 
+    let eventid = 'action-' + $id + '-gather';
     $toold: tool;
 
 
@@ -24,25 +26,27 @@ import {id, nextClockTick, currres, currtype} from '$lib/stores/user'
     onMount(async () => {
         type = {$currtype};
         resourceLabel = {$currres};
-        let connectedSocket = await io.connect('http://localhost:3333', {path: "/socket.io/", transports: ["websocket"], /*query: {token: $session.token}*/});
-        socket.set(connectedSocket);
-        $socket.emit('Test');
-        $socket.on('gather-result', (data) => {
-            console.log(data);
-            isActive.set('true');
-            changeFlavorText(type);
-            updateDisplay(data);
-        })
-        $socket.on('unauthorized', () => {
-            console.log("WEOAH")
-        })
-        $socket.on('testing', (data) => {
-            console.log(data);
-        })
-        $socket.on('tick', (data) => {
-
-        })
+        if ($socket) {
+            $socket.removeAllListeners();
+            $socket.emit('Test');
+            $socket.on(eventid, (data) => {
+                console.log(data);
+                isActive.set('true');
+                changeFlavorText(type);
+                updateDisplay(data);
+            })
+            $socket.on('unauthorized', () => {
+                console.log("WEOAH")
+            })
+            $socket.on('testing', (data) => {
+            })
+            $socket.on('pushuserdata', (data) => {
+                console.log(data);
+                userdata.set(data);
+            })
+        }
     })
+
 
     function changeFlavorText(type) {
         let flavors = [
@@ -121,6 +125,7 @@ import {id, nextClockTick, currres, currtype} from '$lib/stores/user'
     let xpgain = 0;
     async function updateDisplay(data) {
         resgain = data[resourceLabel];
+        xpgain = data['xp_' + type];
         actionsummary.set({
             gain: data,
             type: type,
@@ -160,7 +165,7 @@ import {id, nextClockTick, currres, currtype} from '$lib/stores/user'
                 {#if $isActive === 'true'}
                 <div class='col'>
                     <strong><div class='row justify-content-center'>You have gained {resgain} {resourceLabel}.</div></strong>
-                    <div class='row justify-content-center'>Pure Resources: 116</div>
+                    <strong><div class='row justify-content-center'>You have gained {xpgain} {type} experience.</div></strong>
                     <div class='row justify-content-center'>Additional Base Resources: 2,226</div>
                     <div class='row justify-content-center'>Equipment Bonus: 216.64%</div>
                     <div class='row justify-content-center'>Guild Bonus: 56.92%</div>

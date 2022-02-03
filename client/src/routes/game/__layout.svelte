@@ -2,7 +2,7 @@
     import {Progress, Tooltip} from 'sveltestrap'
     import { get } from 'svelte/store'
     import {actionsummary, userdata, tickRec} from '$lib/stores/game'
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import {socket} from "$lib/stores/socket"
     import {id, nextClockTick, isActive, currtype} from "$lib/stores/user"
     import { Router, Route, Link } from "svelte-navigator";
@@ -41,25 +41,33 @@
 			date = new Date().getTime();
            
 		}, 200);
-        let connectedSocket = await io.connect('http://localhost:3333', {path: "/socket.io/", transports: ["websocket"], /*query: {token: $session.token}*/});
+        let connectedSocket = await io.connect('http://localhost:3333', {path: "/socket.io/", transports: ["websocket"]});
         socket.set(connectedSocket);
-        $socket.emit('Test');
-        $socket.on('tick', (data) => {
-            console.log(currentpxp + " " + maxpxp + " ");
-            editWidth('#progress-xp-bar', (100*(currentpxp / maxpxp)) + "%");
-            //console.log(data.id);
-            id.set(data.id);
-            // username.set(data.username);
-           // console.log("hello world");
-        });
-        $socket.on('clock-tick', (data) => {
-            nextClockTick.set(data['nextTick']);
+        id = window.sessionStorage.getItem('user-id');
+        $socket.emit('init-id', {
+            id: $id
         })
+        $socket.removeAllListeners();
+        $socket.emit('user-join', {
+            id: $id
+        });
+        // $socket.on('tick', (data) => {
+        //     console.log(currentpxp + " " + maxpxp + " ");
+        //     editWidth('#progress-xp-bar', (100*(currentpxp / maxpxp)) + "%");
+        //     //console.log(data.id);
+        //     id.set(data.id);
+        //     // username.set(data.username);
+        //    // console.log("hello world");
+        // });
         $socket.on('unauthorized', () => {
         });
         return () => {
 			clearInterval(interval);
 		};
+    })
+
+    onDestroy(async () => {
+        window.sessionStorage.clear();
     })
       
 
@@ -76,17 +84,8 @@
     }
     async function startAction() {
         console.log("yo");
-        const res = await fetch('http://localhost:3333/gathering/start', {
-            method: 'POST',
-            headers: {
-                'Content-Type':'application/json'
-            },
-            body: JSON.stringify({
-                id: get__store(id),
-                actionclass: 'gather',
-                type: 'woodcutting'
-            })
-      });   
+        $socket.emit('action-start')
+   
     }
 
     // async function startaction() {
@@ -158,18 +157,17 @@
         <div class='col-5'>
             <div class='row' style='padding-bottom: 2px'>    
                 <div class='col-3 px-0'><strong>{formattedType} Level {$userdata.levels['level_' + $currtype]}</strong></div>
-                <div class='col-4'>
-                    ( {currentpxp} / {maxpxp})
+                <div class='col-8 xpbar--wrap'>
+                    <!-- ( {currentpxp.toLocaleString()} / {maxpxp.toLocaleString()}) -->
 
                     <!-- <div class='progress progress-striped active'>
                         <div id='profession-xp-bar' class='progress-bar-striped' style="width: 34%; background-color: rgb(32,210,225)"></div>
                     </div> -->
-                   <!--  <Progress value={currentpxp} max={maxpxp} color='info'
+                    <Progress value={currentpxp} max={maxpxp} color='info'
                     style="height: 18px" id='progress-profession' striped
                     class='progressbar--profession'> 
-                    {currentpxp} / {maxpxp}
-                    </Progress> -->
-                    <!-- <Tooltip target='progress-profession' bottom>{currentpxp} / {maxpxp}</Tooltip>-->
+                    </Progress>
+                    <Tooltip target='progress-profession' bottom>{currentpxp.toLocaleString()} / {maxpxp.toLocaleString()}</Tooltip>
                 </div> 
             </div> 
             <div class='row' style='padding-bottom: 2px'>
@@ -310,6 +308,11 @@
                  + {$actionsummary.gain[$actionsummary.label]} {$actionsummary.label}
                 {/if}
             </div>
+            <div class='row justify-content-center'>
+                {#if $tickRec === 'true'}
+                + {$actionsummary.gain['xp_' + $actionsummary.type]} {$actionsummary.type} experience
+                {/if}
+            </div>
         </div>
     </div>
 
@@ -376,11 +379,8 @@
         transition-duration: 0.2s;
 
     }
-    /* background color */
-    .wrapper--maincenter, :global(.wrapper) {
-        background-color: rgb(237, 237, 237);
-        color: rgb(108, 108, 108);
-    }
+
+
 
     #action-timer {
         transition-duration: 0.02s;
@@ -408,6 +408,13 @@
 
     .body {
         color: rgb(171, 102, 102);
+    }
+
+        /* background color */
+    .wrapper--maincenter, :global(.wrapper) {
+        background-color: rgb(223, 223, 223);
+        /* text color */
+        color: rgb(72, 72, 72);
     }
 
     /* defines global styles for rarities. Easy to apply on anything.*/

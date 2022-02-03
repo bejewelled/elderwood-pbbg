@@ -74,10 +74,6 @@ class Store {
             id.set(value.id);
             console.log("works");
         });
-        socket.on('pushuserdata', (data) => {
-            console.log(data);
-            userdata.set(data);
-        })
     }
 
 

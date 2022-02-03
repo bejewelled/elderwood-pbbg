@@ -4,11 +4,13 @@ import User from 'App/Models/User'
 import Level from 'App/Models/Level'
 import Wallet from 'App/Models/Wallet'
 import SilentAuthMiddleware from 'App/Middleware/SilentAuth'
-import StatDevotion from 'App/Models/StatDevotion'
+import StatDevotion from 'App/Models/StatsDevotion'
 import Ws from 'App/Services/Ws'
 import Database from '@ioc:Adonis/Lucid/Database'
 import  {UserStore}  from 'App/Services/UserStore'
 import XpThreshold from 'App/Models/XpThreshold'
+import State from 'App/Models/State'
+import Player from 'App/Models/Player'
 
 export default class AuthController {
     public async registerShow({}: HttpContextContract) {
@@ -24,17 +26,20 @@ export default class AuthController {
                 password: schema.string({}, [rules.minLength(8)])
             });
                 const data = await request.validate({schema: userSchema});
-
+                console.log("called");
                 const user = await User.create(data);
-                const level = await Level.create({level_combat: 0})
+                const level = await Level.create({level_combat: 1})
                 const wallet = await Wallet.create({gold: 0})
                 const stats = await StatDevotion.create({combat_attack: 0})
-                const xpthresholds = await XpThreshold.create({mining: 0})
+                console.log("testing");
+                const xpthresholds = await XpThreshold.create({})
+                const states = await State.create({is_active: false})
+                const playerdata = await Player.create({});
         
                 // logs in user after registration
-                await auth.login(user);
                 return response.status(200);
         } catch (e) {
+            console.log(e);
             // returns if unique validation error occurs
             if (e.name === 'ValidationException') {
                 return response.status(406);// indicate to the client that the user is not registered

@@ -112,6 +112,9 @@ class GatherCalc {
         response[this.typenaming[2]()] = resources;
         //console.log(response);
 
+        // add these resources to the store
+        this.store[this.typenaming[2]()] += resources;
+
         // xp calculations
         //@ts-ignore
         let xpres: Object = XPCalc.action(this.id, 'gather', this.type, this.store);

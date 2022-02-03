@@ -8,10 +8,9 @@ import Navigation from '../components/navigation.svelte';
 //   socket.set(connectedSocket);
 // })
 </script>
-  <Container>
-  <div class='wrapper wrapper--header'>
-  </div>  
-</Container>   
+
+
+
 
 <style global>
   .html {

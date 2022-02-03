@@ -23,7 +23,8 @@ import { onMount } from "svelte";
     let authenticated = 'false';
     
     onMount(async () => {
-
+        let connectedSocket = await io.connect('http://localhost:3333', {path: "/socket.io/", transports: ["websocket"], /*query: {token: $session.token}*/});
+        socket.set(connectedSocket);
     })
     function sleep(ms) {
         return new Promise((resolve) => setTimeout(resolve, ms)); // resolve is a callback function
@@ -40,12 +41,12 @@ import { onMount } from "svelte";
             })
       });
       const login = loginres.json()
-      .then(data => {
+      .then((data) => {
         console.log(data['id'][0]['id']);
-        id.set(data['id'][0]['id']);
+        id.set(data['id'][0]['id']); // set user id
         console.log(id);
         const c = id;
-        console.log(c);
+        window.sessionStorage.setItem('user-id', $id);
       });
 
       if (loginres.status === 401) {

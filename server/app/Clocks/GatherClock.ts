@@ -1,17 +1,18 @@
 import Ws from "../Services/Ws";
-import schedule from 'node-schedule';
+import cron from 'node-cron'
 import GatherCalc from 'App/Calculators/GatherCalc'
 import  {UserStore}  from "../Services/UserStore"
+import Database from "@ioc:Adonis/Lucid/Database";
 
-class GatherClock {
+export class GatherClock {
     private nextClockTick;
-    private clock: schedule.Job;
+    private clock;
     private actionclass: string; // combat, gather, forge, jewelcraft
     private type; // the resource being gathered, if gathering.
     private response;
-    private store;
+    private store: UserStore;
     private id;
-    private clockRunning = false;
+    private delta; // used to adjust setInterval so it's more accurate
 
     /**
      * 
@@ -24,6 +25,7 @@ class GatherClock {
         this.id = id;
         this.type = type;
         this.store = userstore;
+        this.start();
     }
     /**
      * Starts the game clock.
@@ -32,47 +34,53 @@ class GatherClock {
      * The type depends on the action - 'jewelcraft', 'forge', 'gather', or 'combat'
      */
     public async start() {
+       if (this.store.getClockStatus()) {
+           console.log('clock running');
+            this.clock.destroy();
+       }
+       this.store.setClockStatus(true);
+       this.clock = cron.schedule('*/6 * * * * *', () => {
+            // console.log("THE CLOCK")
+            Ws.io.emit('prepareClockStart'); // allows client to display preparation text
+           // await this.clock.cancel();// makes sure multiple clocks can't run at the same tim
+                let tickstart = Date.now();
+                this.nextClockTick = tickstart + 6000;
+                Ws.io.emit('clock-tick', {
+                    nextTick: this.nextClockTick
+                })     
+                GatherCalc.init(this.id, this.type, this.store);
+                const response = GatherCalc.action();
+    
         
-        this.stop(); // makes sure multiple clocks can't run at the same time
-        this.clockRunning = true;
-        // console.log("THE CLOCK")
-        Ws.io.emit('prepareClockStart'); // allows client to display preparation text
-
-        this.clock = schedule.scheduleJob('*/6 * * * * *',() => {
-            let tickstart = Date.now();
-            this.nextClockTick = this.clock.nextInvocation().getTime(); // grabs next tick (for client-side display)
-            console.log(this.nextClockTick);
-            Ws.io.emit('clock-tick', {
-                nextTick: this.nextClockTick
-            })
-            console.log("clock tick");   // for testing        
-
-            GatherCalc.init(this.id, this.type, this.store);
-            const response = GatherCalc.action();
-
-            console.log(response);
-
-            this.store.update(response);
-
-            Ws.io.emit('gather-result', response);
-
-             Ws.io.emit('tick', {
-                id: this.id,
-            }) // emits next tick time
-
-            console.log("Latency: " + (Date.now() - tickstart) + " ms")
+                this.store.update(response);
+        
+                Ws.io.emit('gather-result', response);
+                console.log('tick at ' + Date.now())
+                 Ws.io.emit('tick', {
+                    id: this.id,
+                }) // emits next tick time
+                
         })
-    }
+       }
+    
 
+    public async clockloop() {
+
+    }
     /**
      * Stops the tick clock.
      */
     public stop() {
-        if (this.clockRunning) {
-            this.clock.cancel();
+        if (this.store.getClockStatus()) {
+            console.log("destroy it");
+            this.clock.destroy();
+            this.store.setClockStatus(false);
         }
     }
 
+    public getClockStatus() {
+        return this.store.getClockStatus();
+    }
     /**
      * Returns the result of the most recent tick. This MUST occur before any client-side activity occurs.
      * @return the result of last tick, in JSON object format with standard naming conventions.
@@ -89,5 +97,3 @@ class GatherClock {
     }
 
 }
-
-export default new GatherClock();
